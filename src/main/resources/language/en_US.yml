@@ -15,7 +15,9 @@ language:
       no-permission: 'No permissions to play that disc!'
       no-matches: 'Track not found!'
       audio-load: 'Error loading audio!'
+      audio-load-reason: 'Error loading audio: <red>{0}<white>'
       while-playing: 'Error while playing disc!'
+      while-playing-reason: 'Error while playing disc: <red>{0}<white>'
     file:
       not-found: 'File not found!'
   command:

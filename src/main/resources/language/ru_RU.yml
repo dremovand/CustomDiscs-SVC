@@ -14,7 +14,9 @@ language:
       no-permission: 'Нет прав на воспроизведение такой пластинки'
       no-matches: 'Трек не найдено!'
       audio-load: 'Ошибка загрузки аудио!'
+      audio-load-reason: 'Ошибка загрузки аудио: <red>{0}<white>'
       while-playing: 'Ошибка при воспроизведении диска!'
+      while-playing-reason: 'Ошибка при воспроизведении диска: <red>{0}<white>'
     file:
       not-found: 'Файл не найден.'
   command:

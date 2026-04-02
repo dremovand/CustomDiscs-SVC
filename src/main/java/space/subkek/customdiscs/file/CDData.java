@@ -37,7 +37,10 @@ public class CDData {
     loadJukeboxDistances();
   }
 
-  public void save() {
+  public synchronized void save() {
+    if (!hasJukeboxDistanceChanges()) return;
+
+    yaml.remove("jukebox.distance");
     jukeboxDistanceMap.forEach((uuid, distance) ->
       yaml.set("jukebox.distance.%s".formatted(uuid), distance));
 
@@ -69,14 +72,33 @@ public class CDData {
   }
 
   private void loadJukeboxDistances() {
+    jukeboxDistanceMap.clear();
     ConfigurationSection section = yaml.getConfigurationSection("jukebox.distance");
     if (section == null) return;
 
     for (String key : section.getKeys(false)) {
-      UUID uuid = UUID.fromString(key);
-      int distance = (int) section.get(key);
-
-      jukeboxDistanceMap.put(uuid, distance);
+      try {
+        UUID uuid = UUID.fromString(key);
+        int distance = section.getInt(key, CustomDiscs.getPlugin().getCDConfig().getMusicDiscDistance());
+        jukeboxDistanceMap.put(uuid, distance);
+      } catch (IllegalArgumentException e) {
+        CustomDiscs.error("Skipping invalid jukebox.distance key '{}' in data.yml", key);
+      }
     }
+  }
+
+  private boolean hasJukeboxDistanceChanges() {
+    ConfigurationSection section = yaml.getConfigurationSection("jukebox.distance");
+    if (section == null) return !jukeboxDistanceMap.isEmpty();
+
+    if (section.getKeys(false).size() != jukeboxDistanceMap.size()) return true;
+
+    for (var entry : jukeboxDistanceMap.entrySet()) {
+      String key = entry.getKey().toString();
+      int stored = section.getInt(key, Integer.MIN_VALUE);
+      if (stored != entry.getValue()) return true;
+    }
+
+    return false;
   }
 }

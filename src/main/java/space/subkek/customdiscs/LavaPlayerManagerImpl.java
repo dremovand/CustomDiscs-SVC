@@ -384,7 +384,8 @@ public class LavaPlayerManagerImpl implements LavaPlayerManager {
             CustomDiscs.debug("LavaPlayer {} failed to load the track {}: {}", uuid, identifier, e.getMessage());
             for (ServerPlayer serverPlayer : playersInRangeAtStart) {
               Player bukkitPlayer = (Player) serverPlayer.getPlayer();
-              CustomDiscs.sendMessage(bukkitPlayer, plugin.getLanguage().PComponent("error.play.audio-load"));
+              String reason = getShortErrorReason(e);
+              CustomDiscs.sendMessage(bukkitPlayer, plugin.getLanguage().component("error.play.audio-load-reason", reason));
             }
             if (isRunning) stopPlaying(uuid);
             trackFuture.complete(null);
@@ -431,17 +432,28 @@ public class LavaPlayerManagerImpl implements LavaPlayerManager {
           CustomDiscs.debug("LavaPlayer {} got interrupt", uuid);
           Thread.currentThread().interrupt();
         } catch (Throwable e) {
-          CustomDiscs.error("LavaPlayer {} got unexcepted exception: {}", e, uuid);
+          CustomDiscs.error("LavaPlayer {} got unexpected exception while streaming '{}': {}", uuid, identifier, getShortErrorReason(e));
         }
 
         if (isRunning) stopPlaying(uuid);
       } catch (Throwable e) {
+        String reason = getShortErrorReason(e);
         for (ServerPlayer serverPlayer : playersInRangeAtStart) {
           Player bukkitPlayer = (Player) serverPlayer.getPlayer();
-          CustomDiscs.sendMessage(bukkitPlayer, plugin.getLanguage().PComponent("error.play.while-playing"));
-          CustomDiscs.error("LavaPlayer {} got exception: ", e, uuid);
+          CustomDiscs.sendMessage(bukkitPlayer, plugin.getLanguage().component("error.play.while-playing-reason", reason));
         }
+        CustomDiscs.error("LavaPlayer {} failed while playing '{}': {}", uuid, identifier, reason);
       }
+    }
+
+    private String getShortErrorReason(Throwable throwable) {
+      if (throwable == null) return "unknown error";
+
+      String message = throwable.getMessage();
+      if (message == null || message.isBlank())
+        return throwable.getClass().getSimpleName();
+
+      return message;
     }
   }
 }
